@@ -3,32 +3,42 @@
 
 ## Loading and preprocessing the data
 Set the working directory:
-```{r}
+
+```r
 setwd("~/Documents/Coursera/dataScienceSpecialisation/RepData_PeerAssessment1")
 ```
 
+
 Read in the data:
-```{r}
+
+```r
 data <- read.csv("activity.csv")
 ```
 
-Do some transformations to get the data ready for analysis:
-```{r}
-## Get Steps per day
-## group data by 'date' and avg 'steps'
-require(data.table)
-data <- data.table(data)
-dt <- data[,list(mean=mean(steps), sd=sd(steps), totalPerDay=sum(steps)), by=date]
 
-```
+Do some transformations to get the data ready for analysis:
+
+
 
 ## What is mean total number of steps taken per day?
 Histogram of total number of steps taken each day:
-```{r}
+
+```r
 require(ggplot2)
-#plot <- ggplot(grpByDate, aes(x=date)) + geom_histogram(aes(y = ..MeanStepsPerDay..))
-ggplot(dt, aes(x=date)) + geom_histogram(aes(y=..mean..))
 ```
+
+```
+## Loading required package: ggplot2
+```
+
+```r
+plot <- ggplot(someData, aes(x = vaiable)) + geom_histogram(aes(y = ..something..))
+```
+
+```
+## Error: object 'someData' not found
+```
+
 
 The mean and median total number of steps taken per day are:
 | Summary   | Value        | 
@@ -47,27 +57,44 @@ Do something about the missing values (remove or approximate using impute)
 
 ## Imputing missing values
 Calculate the total number of missing values in dataset.
-```{r}
-missingVals <- nrow(data[which(is.na(data$steps)==TRUE), ])
+
+```r
+missingVals <- nrow(data[which(is.na(data$steps) == TRUE), ])
 missingVals
 ```
-Total number of missing = `r missingVals`
+
+```
+## [1] 2304
+```
+
+Total number of missing = 2304
 
 ### Fill in the missing numbers and save as a new dataset
-```{r}
+
+```r
 require(impute)
-
-
-
+```
 
 ```
+## Loading required package: impute
+```
+
+```r
+
+```
+
 
 ### Histogram of Total number of steps taken each day
-```{r}
+
+```r
 require(ggplot2)
-plot <- ggplot(someData, aes(x=vaiable)) + geom_histogram(aes(y = ..something..))
+plot <- ggplot(someData, aes(x = vaiable)) + geom_histogram(aes(y = ..something..))
+```
 
 ```
+## Error: object 'someData' not found
+```
+
 
 
 The mean and median total number of steps taken per day are:
