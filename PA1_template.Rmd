@@ -59,48 +59,108 @@ Therefore interval `r intervalWithMaxSteps` has the maximum average number of st
 ## Imputing missing values
 ### 1. Calculate the total number of missing values in dataset.
 ```{r} 
-numMissingVals <- nrow(data[which(is.na(data$steps)==TRUE), ])
+
+numMissingVals  <- nrow(data[ complete.cases(data)==FALSE ])
 numMissingVals
+
 ```
 Total number of missing = `r numMissingVals`
 
-### 2. Fill in the missing values using Impute Library and save as a new dataset
+
+
+
+
+### 2. Fill in the missing values using the min for the corresponding 5min interval
 ```{r}
-source("http://bioconductor.org/biocLite.R")
-biocLite("impute")
-dataNoNA <- impute.knn(as.matrix(data$steps))
+## Strategy:
+## Use the mean for that 5min interval to replace the mising values
 
-  
-      merged <- merge(data, timeseries, by = "interval")
-      merged[which(is.na(steps)==TRUE), ]$steps
+coalesce2<-function(...){
+  Reduce(function(x,y) {
+    i<-which(is.na(x))
+    x[i]<-y[i]
+    x},
+  list(...))
+}
 
-lapply(merged, function(x) { print(x[4])})
-
+merged <- merge(data, timeseries, by = "interval")
+merged$steps <- with(merged, coalesce2(steps, meanSteps))
 ```
 
-### Histogram of Total number of steps taken each day
-```{r}
-require(ggplot2)
-plot <- ggplot(someData, aes(x=vaiable)) + geom_histogram(aes(y = ..something..))
 
+### 3. New dataset equal to the original dataset but with the missing data filled in
+```{r}
+data2 <- subset(merged, select=cbind("steps","date","interval"))
+
+print("The new dataset is: ")
+head(data2)      
 ```
 
 
-The mean and median total number of steps taken per day are:
-| Summary   | Value        | 
-| ----------|-------------:|
-| Mean      | 'r myMean'   |
-| Median    | 'r myMedian' |
 
-### Effects of Imputing Missing Values on estimates of daily number of steps
+
+
+
+
+### 4. Histogram of Total number of steps taken each day
+```{r}
+
+dt2 <- data2[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=TRUE), totalPerDay=sum(steps, na.rm=TRUE)), by=date]
+
+# Total Steps Per Day
+ggplot(dt2, aes(x=date, y=totalPerDay, fill=totalPerDay)) + geom_bar(stat="identity")
+
+myMean2 <- mean(data2$steps, na.rm = TRUE)
+myMedian2 <- median(data2$steps, na.rm = TRUE)
+#median(dt$meanSteps, na.rm = TRUE)
+```
+
+**2. The mean and median total number of steps taken per day are:**  
+**Mean**:       `r myMean2`     
+**Median**:     `r myMedian2`   
+
+Note the Mean and Median remain unchanged after replacing the missing values with the mean on the corresponding day.
+However, total number of steps taken per day have increased as a result of replacing the missing values with the means.
+
+
+### Effects of Imputing Missing Values on estimates of total daily number of steps
+The effect of imputing missing values on the total daily number of steps is; eight values that were previously NAs now have values. This can be see in the figure below the the vertical bars representing the difference of the dataset with imputed values to the dataset with NAs.
+
+#### Histogram - Difference in Total Number of Steps Per Day Resulting from Imputing Missing values
+```{r}
+diff <- dt2
+diff$diff.totalPerDay <- dt2$totalPerDay - dt$totalPerDay
+
+# Total Steps Per Day
+ggplot(diff, aes(x=date, y=diff.totalPerDay, fill=diff.totalPerDay)) + geom_bar(stat="identity")
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
 - Use weekdays() function
 - Use dataset with filled in values
 
-1. Create new factor in dataset with 2 levels "Weekday", "Weekend"
-2. Make time series panel plot (type "l") x-axis = 5min interval, y-axis = avg steps taken
+### 1. Create new factor in dataset with 2 levels "Weekday", "Weekend"
+```{r}
+data2$date <- as.Date(data2$date)
+data2$weekdayName  <- with(data2, weekdays(date))
+data2$weekdayFlag <- factor(with(data2, ifelse(weekdays(date) %in% c("Monday","Tuesday", "Wednesday","Thursday", "Friday")  ,"Weekday" ,"Weekend" )) )
 
+timeseries2 <- data2[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=TRUE), totalPerDay=sum(steps, na.rm=TRUE)), by=c("weekdayFlag","interval")]
+
+```
+
+
+### 2. Make time series panel plot (type "l") x-axis = 5min interval, y-axis = avg steps taken
+```{r}
+
+m <- ggplot(timeseries2, aes(interval, meanSteps)) 
+m <- m + geom_line() 
+m <- m + facet_wrap(~weekdayFlag, nrow=2, ncol=1)
+m <- m + xlab("Interval")
+m <- m + ylab("Number of Steps")
+m <- m + ggtitle("Timeseries plot of 5min intervals and the average number of steps taken per interval")
+m
+```
 
 
 
