@@ -14,9 +14,12 @@ data <- read.csv("activity.csv")
 
 Do some transformations to get the data ready for analysis:
 ```{r}
-## Get Steps per day
-## group data by 'date' and avg 'steps'
 require(data.table)
+```
+
+```{r}
+## Get Steps per day
+## group data by 'date' and find the mean of 'steps'
 data <- data.table(data)
 dt <- data[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=TRUE), totalPerDay=sum(steps, na.rm=TRUE)), by=date]
 timeseries <- data[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=TRUE), totalPerDay=sum(steps, na.rm=TRUE)), by=interval]
