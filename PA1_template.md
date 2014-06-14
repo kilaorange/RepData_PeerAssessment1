@@ -1,7 +1,7 @@
 # Reproducible Research: Peer Assessment 1
 
 
-## Loading and preprocessing the data
+## 1. Loading and preprocessing the data
 Set the working directory:
 
 ```r
@@ -33,8 +33,8 @@ dt <- data[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=TRUE), t
 timeseries <- data[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=TRUE), totalPerDay=sum(steps, na.rm=TRUE)), by=interval]
 ```
 
-## What is mean total number of steps taken per day?
-1. Histogram of total number of steps taken each day:
+## 2. What is mean total number of steps taken per day?
+### 2.1 Histogram of total number of steps taken each day:
 
 ```r
 require(ggplot2)
@@ -46,35 +46,61 @@ require(ggplot2)
 
 ```r
 # Total Steps Per Day
-ggplot(dt, aes(x=date, y=totalPerDay, fill=totalPerDay)) + geom_bar(stat="identity")
+p <- ggplot(dt, aes(x=date, y=totalPerDay, fill=totalPerDay)) 
+p <- p + geom_bar(stat="identity", colour="darkblue")
+p <- p + ylab("Total Steps per Day")
+p <- p + xlab("Date")
+p <- p + ggtitle("Histogram: Total Number of Steps Per Day")
+p <- p + theme(legend.position="none")
+p
 ```
 
-![plot of chunk makeHist1](figure/makeHist1.png) 
+![plot of chunk makeHist1](figure/makeHist11.png) 
 
 ```r
 # Mean Steps Per Day
-# ggplot(dt, aes(x=date, y=meanSteps, fill=meanSteps)) + geom_bar(stat="identity")
-
-myMean <- mean(data$steps, na.rm = TRUE)
-myMedian <- median(data$steps, na.rm = TRUE)
-#median(dt$meanSteps, na.rm = TRUE)
+p <- ggplot(dt, aes(x=date, y=meanSteps, fill=meanSteps))
+p <- p + geom_bar(stat="identity", colour="darkblue")
+p <- p + ylab("Mean Steps per Day")
+p <- p + xlab("Date")
+p <- p + ggtitle("Histogram: Mean Number of Steps Per Day Over All Daily Intervals")
+p <- p + theme(legend.position="none")
+p
 ```
 
-**2. The mean and median total number of steps taken per day are:**  
-**Mean**:       37.3826     
-**Median**:     0   
+```
+## Warning: Removed 8 rows containing missing values (position_stack).
+```
 
-
-## What is the average daily activity pattern?
-### 1. Time Series Plot
+![plot of chunk makeHist1](figure/makeHist12.png) 
 
 ```r
-ggplot(timeseries, aes(interval, meanSteps)) + geom_line()
+myMean <- mean(data$steps, na.rm = TRUE)
+myMedianAcrossAllDays <- median(data$steps, na.rm = TRUE)
+myMedianDailyAve <- median(dt$meanSteps, na.rm = TRUE)
+```
+  
+### 2.2 The mean and median total number of steps taken per day are:  
+#### Mean:       37.3826     
+#### Median Across All Days:     0 
+#### Median of Daily Averages: 37.3785
+  
+  
+## 3. What is the average daily activity pattern?
+### 3.1 Time Series Plot
+
+```r
+m <- ggplot(timeseries, aes(interval, meanSteps)) 
+m <- m + geom_line(colour="darkblue")
+m <- m + theme_bw()
+m <- m + ggtitle("fig 3.1: Timeseries - Daily Activity Pattern")
+m <- m + xlab("Interval") + ylab("Average Number of Steps") 
+m
 ```
 
 ![plot of chunk makeTimeSeries1](figure/makeTimeSeries1.png) 
 
-### 2. Which 5min Interval, on average across all days, contains maximum number of steps?
+### 3.2 Which 5min Interval, on average across all days, contains maximum number of steps?
 
 ```r
 intervalWithMaxSteps <- timeseries[which(meanSteps == max(timeseries$meanSteps)), ]$interval
@@ -82,8 +108,8 @@ intervalWithMaxSteps <- timeseries[which(meanSteps == max(timeseries$meanSteps))
 Therefore interval 835 has the maximum average number of steps per day.
 
 
-## Imputing missing values
-### 1. Calculate the total number of missing values in dataset.
+## 4. Imputing missing values
+### 4.1 Calculate the total number of missing values in dataset.
 
 ```r
 numMissingVals  <- nrow(data[ complete.cases(data)==FALSE ])
@@ -93,18 +119,16 @@ numMissingVals
 ```
 ## [1] 2304
 ```
-Total number of missing = 2304
-
-
-
-
-
-### 2. Fill in the missing values using the min for the corresponding 5min interval
+#### Total number of missing = 2304
+  
+  
+### 4.2 Fill in the missing values using the min for the corresponding 5min interval
 
 ```r
 ## Strategy:
 ## Use the mean for that 5min interval to replace the mising values
 
+## Build a custom coalesce function
 coalesce2<-function(...){
   Reduce(function(x,y) {
     i<-which(is.na(x))
@@ -113,26 +137,21 @@ coalesce2<-function(...){
   list(...))
 }
 
+## Join the original Data with the Time Series data by the common column "interval"
 merged <- merge(data, timeseries, by = "interval")
+
+## Where steps is NA in the original dataset, replace it with the mean number of steps for that interval
 merged$steps <- with(merged, coalesce2(steps, meanSteps))
 ```
 
 
-### 3. New dataset equal to the original dataset but with the missing data filled in
+### 4.3 New dataset equal to the original dataset but with the missing data filled in
 
 ```r
 data2 <- subset(merged, select=cbind("steps","date","interval"))
-
-print("The new dataset is: ")
 ```
 
-```
-## [1] "The new dataset is: "
-```
-
-```r
-head(data2)      
-```
+See head of new dataset below. _Notice there are no NAs here._
 
 ```
 ##     steps       date interval
@@ -143,40 +162,43 @@ head(data2)
 ## 5:  0.000 2012-10-05        0
 ## 6:  0.000 2012-10-06        0
 ```
+  
 
-
-
-
-
-
-
-### 4. Histogram of Total number of steps taken each day
+### 4.4 Histogram of Total number of steps taken each day
 
 ```r
 dt2 <- data2[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=TRUE), totalPerDay=sum(steps, na.rm=TRUE)), by=date]
 
 # Total Steps Per Day
-ggplot(dt2, aes(x=date, y=totalPerDay, fill=totalPerDay)) + geom_bar(stat="identity")
+p <- ggplot(dt2, aes(x=date, y=totalPerDay, fill=totalPerDay))
+p <- p + geom_bar(stat="identity", colour="darkblue")
+p <- p + ylab("Total Steps per Day")
+p <- p + xlab("Date")
+p <- p + ggtitle("Histogram: Total Number of Steps Per Day")
+p <- p + theme(legend.position="none")
+p
 ```
 
 ![plot of chunk makeHist2](figure/makeHist2.png) 
 
 ```r
 myMean2 <- mean(data2$steps, na.rm = TRUE)
-myMedian2 <- median(data2$steps, na.rm = TRUE)
-#median(dt$meanSteps, na.rm = TRUE)
+myMedianAcrossAllDays2 <- median(data2$steps, na.rm = TRUE)
+myMedianDailyAve2 <- median(dt2$meanSteps, na.rm = TRUE)
 ```
 
-**2. The mean and median total number of steps taken per day are:**  
-**Mean**:       37.3826     
-**Median**:     0   
-
-Note the Mean and Median remain unchanged after replacing the missing values with the mean on the corresponding day.
-However, total number of steps taken per day have increased as a result of replacing the missing values with the means.
 
 
-### Effects of Imputing Missing Values on estimates of total daily number of steps
-The effect of imputing missing values on the total daily number of steps is; eight values that were previously NAs now have values. This can be see in the figure below the the vertical bars representing the difference of the dataset with imputed values to the dataset with NAs.
+### 4.5 The mean and median total number of steps taken per day are:  
+#### Mean:       37.3826     
+#### Median Across All Days:     0 
+#### Median of Daily Averages: 37.3826
+
+### 4.6 Do these values differ from the estimates from the first part of the assignment? 
+Note the **Mean** and **Median Across All Days** remain unchanged after replacing the missing values with the mean of the corresponding day. However, the **Median of Daily Averages** differs by 0.0041. 
+  
+### 4.7 Effects of Imputing Missing Values on estimates of total daily number of steps
+The total number of steps taken per day have increased on eight days as a result of replacing the missing values with the means. These eight days previously had NAs and now have values. This can be see in the figure below with the vertical bars representing the days where the total number of daily steps differed from the original dataset. 
 
 #### Histogram - Difference in Total Number of Steps Per Day Resulting from Imputing Missing values
 
@@ -185,16 +207,20 @@ diff <- dt2
 diff$diff.totalPerDay <- dt2$totalPerDay - dt$totalPerDay
 
 # Total Steps Per Day
-ggplot(diff, aes(x=date, y=diff.totalPerDay, fill=diff.totalPerDay)) + geom_bar(stat="identity")
+p <- ggplot(diff, aes(x=date, y=diff.totalPerDay, fill=diff.totalPerDay)) 
+p <- p + geom_bar(stat="identity", colour="darkblue")
+p <- p + theme(legend.position="none")
+p <- p + xlab("Date") + ylab("Total Difference in Steps") + ggtitle("fig 4.7: Difference in Total Number of Steps Per Day")
+p
 ```
 
-![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1.png) 
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
 
-## Are there differences in activity patterns between weekdays and weekends?
+## 5. Are there differences in activity patterns between weekdays and weekends?
 - Use weekdays() function
 - Use dataset with filled in values
 
-### 1. Create new factor in dataset with 2 levels "Weekday", "Weekend"
+### 5.1 Create new factor in dataset with 2 levels "Weekday", "Weekend"
 
 ```r
 data2$date <- as.Date(data2$date)
@@ -205,22 +231,41 @@ timeseries2 <- data2[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.r
 ```
 
 
-### 2. Make time series panel plot (type "l") x-axis = 5min interval, y-axis = avg steps taken
+### 5.2 Make time series panel plot (type "l") x-axis = 5min interval, y-axis = avg steps taken
 
 ```r
 m <- ggplot(timeseries2, aes(interval, meanSteps)) 
-m <- m + geom_line() 
+m <- m + geom_line(colour="darkblue") 
 m <- m + facet_wrap(~weekdayFlag, nrow=2, ncol=1)
 m <- m + xlab("Interval")
 m <- m + ylab("Number of Steps")
-m <- m + ggtitle("Timeseries plot of 5min intervals and the average number of steps taken per interval")
+m <- m + ggtitle("fig 5.2: 5min intervals vs average number of steps per interval")
+m <- m + theme_bw()
+m <- m + theme(strip.text.x = element_text(size=14, face="bold"),
+          strip.background = element_rect(colour="black", fill="skyblue"))
 m
 ```
 
 ![plot of chunk makeTimeSeries2](figure/makeTimeSeries2.png) 
 
 
+```
+## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
+## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
+```
 
+![plot of chunk makeTimeSeries3](figure/makeTimeSeries3.png) 
+
+
+  
+ 
+  
+#### Conculsion
+- There are there differences in activity patterns between weekdays and weekends. Activity tends to start later and more gradually on weekends than on weekdays according to plot 5.2. For weekends it starts from interval 500 onwards very gradually. Whereas for weekdays it begins from interval 500 onwards very abruptly.
+
+- For weekdays activity tend to be more periodic with a spike every few hours, whereas weekends do not exhibit this periodic nature. 
+
+- Weekend activity tends to cease later in the day with a large spike just after interval 2000. Whereas weekday activity more abrubtly ends just after interval 1550
 
 
 
