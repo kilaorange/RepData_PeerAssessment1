@@ -3,21 +3,21 @@
 
 ## Loading and preprocessing the data
 Set the working directory:
-```{r}
+```{r setWorkingDir}
 setwd("~/Documents/Coursera/dataScienceSpecialisation/RepData_PeerAssessment1")
 ```
 
 Read in the data:
-```{r}
+```{r readData}
 data <- read.csv("activity.csv")
 ```
 
 Do some transformations to get the data ready for analysis:
-```{r}
+```{r transform}
 require(data.table)
 ```
 
-```{r}
+```{r groupBy}
 ## Get Steps per day
 ## group data by 'date' and find the mean of 'steps'
 data <- data.table(data)
@@ -27,7 +27,7 @@ timeseries <- data[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=
 
 ## What is mean total number of steps taken per day?
 1. Histogram of total number of steps taken each day:
-```{r}
+```{r makeHist1}
 require(ggplot2)
 
 # Total Steps Per Day
@@ -48,12 +48,12 @@ myMedian <- median(data$steps, na.rm = TRUE)
 
 ## What is the average daily activity pattern?
 ### 1. Time Series Plot
-```{r}
+```{r makeTimeSeries1}
 ggplot(timeseries, aes(interval, meanSteps)) + geom_line()
 ```
 
 ### 2. Which 5min Interval, on average across all days, contains maximum number of steps?
-```{r}
+```{r findMax}
 intervalWithMaxSteps <- timeseries[which(meanSteps == max(timeseries$meanSteps)), ]$interval
 ```
 Therefore interval `r intervalWithMaxSteps` has the maximum average number of steps per day.
@@ -61,7 +61,7 @@ Therefore interval `r intervalWithMaxSteps` has the maximum average number of st
 
 ## Imputing missing values
 ### 1. Calculate the total number of missing values in dataset.
-```{r} 
+```{r missingVals} 
 
 numMissingVals  <- nrow(data[ complete.cases(data)==FALSE ])
 numMissingVals
@@ -74,7 +74,7 @@ Total number of missing = `r numMissingVals`
 
 
 ### 2. Fill in the missing values using the min for the corresponding 5min interval
-```{r}
+```{r fillMissingVals}
 ## Strategy:
 ## Use the mean for that 5min interval to replace the mising values
 
@@ -92,7 +92,7 @@ merged$steps <- with(merged, coalesce2(steps, meanSteps))
 
 
 ### 3. New dataset equal to the original dataset but with the missing data filled in
-```{r}
+```{r newDataset}
 data2 <- subset(merged, select=cbind("steps","date","interval"))
 
 print("The new dataset is: ")
@@ -106,7 +106,7 @@ head(data2)
 
 
 ### 4. Histogram of Total number of steps taken each day
-```{r}
+```{r makeHist2}
 
 dt2 <- data2[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=TRUE), totalPerDay=sum(steps, na.rm=TRUE)), by=date]
 
@@ -130,7 +130,7 @@ However, total number of steps taken per day have increased as a result of repla
 The effect of imputing missing values on the total daily number of steps is; eight values that were previously NAs now have values. This can be see in the figure below the the vertical bars representing the difference of the dataset with imputed values to the dataset with NAs.
 
 #### Histogram - Difference in Total Number of Steps Per Day Resulting from Imputing Missing values
-```{r}
+```{r }
 diff <- dt2
 diff$diff.totalPerDay <- dt2$totalPerDay - dt$totalPerDay
 
@@ -143,7 +143,7 @@ ggplot(diff, aes(x=date, y=diff.totalPerDay, fill=diff.totalPerDay)) + geom_bar(
 - Use dataset with filled in values
 
 ### 1. Create new factor in dataset with 2 levels "Weekday", "Weekend"
-```{r}
+```{r makeWeekdays}
 data2$date <- as.Date(data2$date)
 data2$weekdayName  <- with(data2, weekdays(date))
 data2$weekdayFlag <- factor(with(data2, ifelse(weekdays(date) %in% c("Monday","Tuesday", "Wednesday","Thursday", "Friday")  ,"Weekday" ,"Weekend" )) )
@@ -154,7 +154,7 @@ timeseries2 <- data2[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.r
 
 
 ### 2. Make time series panel plot (type "l") x-axis = 5min interval, y-axis = avg steps taken
-```{r}
+```{r makeTimeSeries2}
 
 m <- ggplot(timeseries2, aes(interval, meanSteps)) 
 m <- m + geom_line() 

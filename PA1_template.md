@@ -27,7 +27,7 @@ require(data.table)
 
 ```r
 ## Get Steps per day
-## group data by 'date' and avg 'steps'
+## group data by 'date' and find the mean of 'steps'
 data <- data.table(data)
 dt <- data[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=TRUE), totalPerDay=sum(steps, na.rm=TRUE)), by=date]
 timeseries <- data[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=TRUE), totalPerDay=sum(steps, na.rm=TRUE)), by=interval]
@@ -49,7 +49,7 @@ require(ggplot2)
 ggplot(dt, aes(x=date, y=totalPerDay, fill=totalPerDay)) + geom_bar(stat="identity")
 ```
 
-![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
+![plot of chunk makeHist1](figure/makeHist1.png) 
 
 ```r
 # Mean Steps Per Day
@@ -72,7 +72,7 @@ myMedian <- median(data$steps, na.rm = TRUE)
 ggplot(timeseries, aes(interval, meanSteps)) + geom_line()
 ```
 
-![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 
+![plot of chunk makeTimeSeries1](figure/makeTimeSeries1.png) 
 
 ### 2. Which 5min Interval, on average across all days, contains maximum number of steps?
 
@@ -159,7 +159,7 @@ dt2 <- data2[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=TRUE),
 ggplot(dt2, aes(x=date, y=totalPerDay, fill=totalPerDay)) + geom_bar(stat="identity")
 ```
 
-![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11.png) 
+![plot of chunk makeHist2](figure/makeHist2.png) 
 
 ```r
 myMean2 <- mean(data2$steps, na.rm = TRUE)
@@ -188,7 +188,7 @@ diff$diff.totalPerDay <- dt2$totalPerDay - dt$totalPerDay
 ggplot(diff, aes(x=date, y=diff.totalPerDay, fill=diff.totalPerDay)) + geom_bar(stat="identity")
 ```
 
-![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-12.png) 
+![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1.png) 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 - Use weekdays() function
@@ -217,7 +217,7 @@ m <- m + ggtitle("Timeseries plot of 5min intervals and the average number of st
 m
 ```
 
-![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14.png) 
+![plot of chunk makeTimeSeries2](figure/makeTimeSeries2.png) 
 
 
 
