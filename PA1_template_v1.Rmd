@@ -27,30 +27,52 @@ timeseries <- data[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=
 
 ## 2. What is mean total number of steps taken per day?
 ### 2.1 Histogram of total number of steps taken each day:
-```{r makeHist1, message=FALSE, warning=FALSE}
+```{r makeHist1}
 require(ggplot2)
 
 # Histogram: Total Steps Per Day
-hist1 <- ggplot(dt, aes(x=totalPerDay)) 
-hist1 <- hist1 + geom_histogram(aes(fill=..count..))
-hist1 <- hist1 + scale_fill_gradient("Count", low = "red", high = "green")
-hist1 <- hist1 + ylab("Count")
-hist1 <- hist1 + xlab("Total Steps Per Day")
-hist1 <- hist1 + ggtitle("fig 2.1: Histogram - Total Number of Steps Per Day")
-hist1
+p <- ggplot(dt, aes(x=totalPerDay)) 
+p <- p + geom_histogram(aes(fill=..count..))
+p <- p+ scale_fill_gradient("Count", low = "red", high = "green")
+p
+
+
+
+
+
+
+
+
+
+
+################################
+# Total Steps Per Day
+p <- ggplot(dt, aes(x=date, y=totalPerDay, fill=totalPerDay)) 
+p <- p + geom_bar(stat="identity", colour="darkblue")
+p <- p + ylab("Total Steps per Day")
+p <- p + xlab("Date")
+p <- p + ggtitle("fig 2.1: Histogram - Total Number of Steps Per Day")
+p <- p + theme(legend.position="none")
+p
+
+# Mean Steps Per Day
+p <- ggplot(dt, aes(x=date, y=meanSteps))
+p <- p + geom_bar(stat="identity", colour="darkred", fill="pink")
+p <- p + ylab("Mean Steps per Day")
+p <- p + xlab("Date")
+p <- p + ggtitle("fig 2.2: Mean Number of Steps Per Day Over All Daily Intervals")
+p <- p + theme(legend.position="none")
+p
 
 myMean <- mean(data$steps, na.rm = TRUE)
-myMedianTotDaySteps <- median(dt$totalPerDay, na.rm = TRUE)
-myMedianAcrossAllIntervals <- median(data$steps, na.rm = TRUE)
+myMedianAcrossAllDays <- median(data$steps, na.rm = TRUE)
 myMedianDailyAve <- median(dt$meanSteps, na.rm = TRUE)
-
 ```
   
 ### 2.2 The mean and median total number of steps taken per day are:  
 #### Mean:       `r myMean`     
-#### Median of Total Steps per Day: `r myMedianTotDaySteps` 
-#### Median Across All Intervals:     `r myMedianAcrossAllIntervals` 
-#### Median of Daily Average Steps: `r myMedianDailyAve`
+#### Median Across All Days:     `r myMedianAcrossAllDays` 
+#### Median of Daily Averages: `r myMedianDailyAve`
   
   
 ## 3. What is the average daily activity pattern?
@@ -116,53 +138,59 @@ head(data2)
   
 
 ### 4.4 Histogram of Total number of steps taken each day
-```{r makeHist2, message=FALSE, warning=FALSE}
+```{r makeHist2}
 
 dt2 <- data2[,list(meanSteps=mean(steps, na.rm=TRUE), std=sd(steps, na.rm=TRUE), totalPerDay=sum(steps, na.rm=TRUE)), by=date]
 
 # Histogram: Total Steps Per Day
-hist2 <- ggplot(dt2, aes(x=totalPerDay)) 
-hist2 <- hist2 + geom_histogram(aes(fill=..count..))
-hist2 <- hist2 + scale_fill_gradient("Count", low = "red", high = "green")
-hist2 <- hist2 + ylab("Count")
-hist2 <- hist2 + xlab("Total Steps Per Day")
-hist2 <- hist2 + ggtitle("Fig 4.4: Histogram - Total Number of Steps Per Day (Imputed)")
-hist2
+p <- ggplot(dt2, aes(x=totalPerDay)) 
+p <- p + geom_histogram(aes(fill=..count..))
+p <- p+ scale_fill_gradient("Count", low = "red", high = "green")
+p
+
+##############################################################
+# Total Steps Per Day
+p <- ggplot(dt2, aes(x=date, y=totalPerDay, fill=totalPerDay))
+p <- p + geom_bar(stat="identity", colour="darkblue")
+p <- p + ylab("Total Steps per Day")
+p <- p + xlab("Date")
+p <- p + ggtitle("Fig 4.4: Histogram - Total Number of Steps Per Day")
+p <- p + theme(legend.position="none")
+p
 
 
 myMean2 <- mean(data2$steps, na.rm = TRUE)
-myMedianTotDaySteps2 <- median(dt2$totalPerDay, na.rm = TRUE)
-myMedianAcrossAllIntervals2 <- median(data2$steps, na.rm = TRUE)
+myMedianAcrossAllDays2 <- median(data2$steps, na.rm = TRUE)
 myMedianDailyAve2 <- median(dt2$meanSteps, na.rm = TRUE)
-
 ```
 
 ```{r, echo=FALSE}
-delta1 <- abs(myMedianTotDaySteps2 - myMedianTotDaySteps)
-delta2 <- abs(myMedianDailyAve2 - myMedianDailyAve)
+delta <- abs(myMedianDailyAve2 - myMedianDailyAve)
 ```
 
 ### 4.5 The mean and median total number of steps taken per day are:  
-#### Mean:       `r myMean2`   
-#### Median of Total Steps per Day: `r myMedianTotDaySteps2` 
-#### Median Across All Days:     `r myMedianAcrossAllIntervals2` 
+#### Mean:       `r myMean2`     
+#### Median Across All Days:     `r myMedianAcrossAllDays2` 
 #### Median of Daily Averages: `r myMedianDailyAve2`
-  
 
 ### 4.6 Do these values differ from the estimates from the first part of the assignment? 
-Note the **Mean** remains unchanged after replacing the missing values with the mean of the corresponding day. However, the **Median of Total Steps per Day** has increased by `r delta1` steps.
-  
-Other insights include the **Median Across All Intervals** remains unchanged and the **Median of Daily Averages** differs by `r delta2`. 
+Note the **Mean** and **Median Across All Days** remain unchanged after replacing the missing values with the mean of the corresponding day. However, the **Median of Daily Averages** differs by `r delta`. 
   
 ### 4.7 Effects of Imputing Missing Values on estimates of total daily number of steps
-The total number of steps taken per day have increased on eight days as a result of replacing the missing values with the means. These eight days previously had NAs and now have values. This can be see in the figure below where some of the green bar on the left of fig 2.1 has moved to the middle of the histogram in fig 4.4 (Imputed Values). 
+The total number of steps taken per day have increased on eight days as a result of replacing the missing values with the means. These eight days previously had NAs and now have values. This can be see in the figure below with the vertical bars representing the days where the total number of daily steps differed from the original dataset. 
 
 #### Histogram - Difference in Total Number of Steps Per Day Resulting from Imputing Missing values
-```{r histCompare, echo=FALSE, message=FALSE, warning=FALSE}
-## Graph Hist1 and Hist2 above one another
-require("gridExtra")
-grid.arrange( hist1, hist2, nrow=2)
+```{r }
+diff <- dt2
+diff$diff.totalPerDay <- dt2$totalPerDay - dt$totalPerDay
 
+# Total Steps Per Day
+p <- ggplot(diff, aes(x=date, y=diff.totalPerDay, fill=diff.totalPerDay)) 
+p <- p + geom_bar(stat="identity", colour="darkblue")
+p <- p + theme(legend.position="none")
+p <- p + xlab("Date") + ylab("Total Difference in Steps") 
+p <- p + ggtitle("fig 4.7: Difference in Total Number of Steps Per Day")
+p
 ```
 
 ## 5. Are there differences in activity patterns between weekdays and weekends?
@@ -195,9 +223,7 @@ m <- m + theme(strip.text.x = element_text(size=14, face="bold"),
 m
 ```
 
-### 5.3 Plot with Smoothed Conditional Mean
-
-```{r makeTimeSeries3, echo=FALSE, message=FALSE, warning=FALSE}
+```{r makeTimeSeries3, echo=FALSE}
 
 m <- ggplot(timeseries2, aes(interval, meanSteps)) 
 m <- m + geom_line(colour="darkblue") 
@@ -236,7 +262,7 @@ m
 #### Conculsion
 - There are there differences in activity patterns between weekdays and weekends. Activity tends to start later and more gradually on weekends than on weekdays according to plot 5.2. For weekends it starts from interval 500 onwards very gradually. Whereas for weekdays it begins from interval 500 onwards very abruptly.
 
-- For weekdays activity tends to be more periodic with a spike every few hours, whereas weekends do not exhibit this periodic nature. 
+- For weekdays activity tend to be more periodic with a spike every few hours, whereas weekends do not exhibit this periodic nature. 
 
 - Weekend activity tends to cease later in the day with a large spike just after interval 2000. Whereas weekday activity more abrubtly ends just after interval 1550
 
